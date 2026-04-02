@@ -34,18 +34,30 @@ const AuthPage = () => {
     }
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
+ const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     const storedEmail = sessionStorage.getItem('pending_email');
     if (!storedEmail) return alert("Email topilmadi");
 
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:8080/auth/verify', { email: storedEmail, code: otp });
+      const res = await axios.post('http://localhost:8080/auth/verify', { 
+        email: storedEmail, 
+        code: otp 
+      });
+      
       alert(res.data.message);
       sessionStorage.removeItem('pending_email');
+      
+      // Muvaffaqiyatli bo'lsa inputni tozalaymiz
+      setOtp(''); 
+      
+      // Masalan, bu yerda foydalanuvchini login sahifasiga yo'naltirishingiz mumkin
     } catch (err: any) {
       alert(err.response?.data?.message || "Kod noto'g'ri");
+      
+      // Xato bo'lganda ham inputni tozalash foydalanuvchiga qayta kiritish imkonini beradi
+      setOtp(''); 
     } finally {
       setLoading(false);
     }
