@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Mail, Lock, CheckCircle, RefreshCw, Loader2 } from 'lucide-react';
+// 1. Importlar qatoriga useRouter qo'shing
+import { useRouter } from 'next/navigation';
+
 
 const AuthPage = () => {
   const [step, setStep] = useState<'register' | 'verify'>('register');
@@ -10,7 +13,9 @@ const AuthPage = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
-
+  
+  // 2. Komponent ichida routerni e'lon qiling
+  const router = useRouter();
   useEffect(() => {
     let interval: any;
     if (timer > 0) {
@@ -34,34 +39,33 @@ const AuthPage = () => {
     }
   };
 
- const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const storedEmail = sessionStorage.getItem('pending_email');
-    if (!storedEmail) return alert("Email topilmadi");
+ // 3. handleVerify funksiyasini yangilang
+const handleVerify = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const storedEmail = sessionStorage.getItem('pending_email');
+  if (!storedEmail) return alert("Email topilmadi");
 
-    setLoading(true);
-    try {
-      const res = await axios.post('http://localhost:8080/auth/verify', { 
-        email: storedEmail, 
-        code: otp 
-      });
-      
-      alert(res.data.message);
-      sessionStorage.removeItem('pending_email');
-      
-      // Muvaffaqiyatli bo'lsa inputni tozalaymiz
-      setOtp(''); 
-      
-      // Masalan, bu yerda foydalanuvchini login sahifasiga yo'naltirishingiz mumkin
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Kod noto'g'ri");
-      
-      // Xato bo'lganda ham inputni tozalash foydalanuvchiga qayta kiritish imkonini beradi
-      setOtp(''); 
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await axios.post('http://localhost:8080/auth/verify', { 
+      email: storedEmail, 
+      code: otp 
+    });
+    
+    alert("Profilingiz muvaffaqiyatli tasdiqlandi!");
+    sessionStorage.removeItem('pending_email');
+    setOtp('');
+
+    // --- MANA BU QATOR YO'NALTIRADI ---
+    router.push('/login'); 
+    
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Kod noto'g'ri");
+    setOtp('');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleResend = async () => {
     const storedEmail = sessionStorage.getItem('pending_email');
